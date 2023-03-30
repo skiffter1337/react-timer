@@ -1,9 +1,17 @@
-.progressbar {
-    width: 150px;
+.progressbars {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 
 }
+.progressbar {
+    width: 90px;
+    height: 90px;
+}
 
-.timerValue {
-    font-size: 160px;
-    border: 2px solid #ff0009;
+
+.controlButtons {
+    display: flex;
+justify-content: center;
+    gap: 20px;
 }

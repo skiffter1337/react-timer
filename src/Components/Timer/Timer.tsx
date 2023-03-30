@@ -15,8 +15,9 @@ type TimerControlButtonConfigType = {
 
 export const Timer = () => {
 
+    const [startTime, setStartTime] = useState<number>(0)
     const [totalTime, setTotalTime] = useState<number>(0)
-    const [timeLeft, setTimeLeft] = useState(1 * 60)
+    const [timeLeft, setTimeLeft] = useState(startTime * 60)
     const [timerStatus, setTimerStatus] = useState(0)
     const [intervalId, setIntervalId] = useState(setInterval(() => {
     }, 1000))
@@ -39,16 +40,19 @@ export const Timer = () => {
         }
     }, [timerStatus])
 
-    useEffect(() => {totalTime > 3600 && setTotalTime(3600)}, [totalTime])
+    useEffect(() => {
+        totalTime > 3600 && setTotalTime(3600)
+    }, [totalTime])
 
     useEffect(() => {
         timeLeft >= 3600 && setTimeLeft(3600)
 
-        if (timeLeft < 0) {
+        if (timeLeft <= 0) {
             setTimeLeft(0)
             setTotalTime(0)
             setTimerStatus(0)
         }
+
     }, [timeLeft])
 
 
@@ -72,30 +76,16 @@ export const Timer = () => {
     }
 
 
-    const addOneMinute = () => {
-        setTimeLeft(timeLeft + 60)
-        setTotalTime(totalTime + 60)
+    const updateTimer = (seconds: number) => {
+        setTimeLeft(timeLeft + seconds)
+        setTotalTime(totalTime + seconds)
     }
-    const addFiveMinutes = () => {
-        setTimeLeft(timeLeft + 300)
-        setTotalTime(totalTime + 300)
-    }
-    const addFifteenMinutes = () => {
-        setTimeLeft(timeLeft + 1500)
-        setTotalTime(totalTime + 1500)
-    }
-    const removeFifteenMinutes = () => {
-        setTimeLeft(timeLeft - 1500)
-        setTotalTime(totalTime - 1500)
-    }
-    const removeFiveMinutes = () => {
-        setTimeLeft(timeLeft - 300)
-        setTotalTime(totalTime - 300)
-    }
-    const removeOneMinute = () => {
-        setTimeLeft(timeLeft - 60)
-        setTotalTime(totalTime - 60)
-    }
+    const addOneMinute = () => updateTimer(60)
+    const addFiveMinutes = () => updateTimer(300)
+    const addFifteenMinutes = () => updateTimer(1500)
+    const removeFifteenMinutes = () => updateTimer(-1500)
+    const removeFiveMinutes = () => updateTimer(-300)
+    const removeOneMinute = () => updateTimer(-60)
 
 
     const timerControlButtonsConfig: TimerControlButtonsConfigType = {
@@ -128,15 +118,15 @@ export const Timer = () => {
 
 
     const progressbarText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-    const progressbarPercentage = Math.round(timeLeft / totalTime * 100)
-
+    const progressbarPercentage = timeLeft === 0 ? 0 : Math.round(timeLeft / totalTime * 100)
 
     return (
         <div>
             <CircularProgressbar value={progressbarPercentage} text={progressbarText} className={s.progressbar}/>
-
             <div className={s.buttonsContainer}>
-                {controlButtons}
+                <div className={s.controlButtons}>
+                    {controlButtons}
+                </div>
                 <div>
                     {changeValueButtons}
                 </div>
