@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import 'react-circular-progressbar/dist/styles.css';
 import {SuperButton} from "./SuperButton/SuperButton";
-import {Settings} from "./Settings/Settings";
 import s from './Timer.module.css'
-import {CircularProgressbar} from "react-circular-progressbar";
+import {buildStyles, CircularProgressbar} from "react-circular-progressbar";
+import SuperRange from "../SuperRange";
 
 type TimerControlButtonsConfigType = {
     [key: number]: TimerControlButtonConfigType[]
@@ -30,7 +30,7 @@ export const Timer = () => {
             setIntervalId(setInterval(() => {
                 timerStatus === 1 &&
                 setTimeLeft((timeLeft) => timeLeft >= 1 ? timeLeft - 1 : 0)
-            }, 100))
+            }, 1000))
         }
 
         return () => {
@@ -103,16 +103,16 @@ export const Timer = () => {
         ]
     }
     const timerValueButtonsConfig = [
-        {label: "+1 min", callback: addOneMinute},
-        {label: "+5 min", callback: addFiveMinutes},
-        {label: "+15 min", callback: addFifteenMinutes},
-        {label: "-15 min", callback: removeFifteenMinutes},
-        {label: "-5 min", callback: removeFiveMinutes},
-        {label: "-1 min", callback: removeOneMinute}
+        {label: "+1", callback: addOneMinute},
+        {label: "+5", callback: addFiveMinutes},
+        {label: "+15", callback: addFifteenMinutes},
+        {label: "-15", callback: removeFifteenMinutes},
+        {label: "-5", callback: removeFiveMinutes},
+        {label: "-1", callback: removeOneMinute}
     ]
 
     const controlButtons = timerControlButtonsConfig[timerStatus].map(({text, callback}, index) => <SuperButton
-        callback={callback} key={index} disabled={timeLeft <= 0}>{text}</SuperButton>)
+        callback={callback} key={index} disabled={timeLeft <= 0} xType={"control"}>{text}</SuperButton>)
     const changeValueButtons = timerValueButtonsConfig.map(({label, callback}, index) => <SuperButton
         callback={callback} key={index}>{label}</SuperButton>)
 
@@ -120,18 +120,22 @@ export const Timer = () => {
     const progressbarText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
     const progressbarPercentage = timeLeft === 0 ? 0 : Math.round(timeLeft / totalTime * 100)
 
+
     return (
-        <div>
-            <CircularProgressbar value={progressbarPercentage} text={progressbarText} className={s.progressbar}/>
-            <div className={s.buttonsContainer}>
-                <div className={s.controlButtons}>
-                    {controlButtons}
+        <div className={s.timer}>
+            <div className={s.timerBlock}>
+                <CircularProgressbar value={progressbarPercentage} text={progressbarText} className={s.progressbar} styles={buildStyles({textColor: "#041e3a", pathColor: "#041e3a"})}/>
+                <div className={s.buttonsContainer}>
+                    <div className={s.controlButtons}>
+                        {controlButtons}
+                    </div>
+                    <div className={s.changeValueButtons}>
+                        {changeValueButtons}
+                    </div>
                 </div>
-                <div>
-                    {changeValueButtons}
+                <div className={s.range}>
                 </div>
             </div>
-            <Settings/>
         </div>
     );
 };
