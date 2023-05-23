@@ -32,7 +32,7 @@ export const Timer = () => {
                 clearInterval(intervalId);
             }
         };
-    }, [timerState.timeLeft, timerState.timerStatus]);
+    }, [dispatch, timerState.timeLeft, timerState.timerStatus]);
 
 
     useEffect(() => {
@@ -48,18 +48,19 @@ export const Timer = () => {
     }, [dispatch, timerState.totalTime, timerState.timeLeft])
 
 
-    const start = useCallback(() => dispatch(timerActions.startTimer()), [dispatch])
-    const stop = useCallback(() => dispatch(timerActions.setTimerStatus({timerStatus: 2})), [dispatch])
-    const resume = useCallback(() => dispatch(timerActions.setTimerStatus({timerStatus: 1})), [dispatch])
-    const reset = useCallback(() => {
+    const start = () => dispatch(timerActions.startTimer())
+    const stop = () => dispatch(timerActions.setTimerStatus({timerStatus: 2}))
+    const resume = () => dispatch(timerActions.setTimerStatus({timerStatus: 1}))
+
+    const reset = () => {
         dispatch(timerActions.setTimerStatus({timerStatus: 0}))
         dispatch(timerActions.setTimeLeft({timeLeft: 0}))
-    }, [dispatch])
-    const updateTimer = useCallback((seconds: number) => {
+    }
+
+    const updateTimer = (seconds: number) => {
         dispatch(timerActions.setTimeLeft({timeLeft: timerState.timeLeft + seconds}))
         dispatch(timerActions.setTotalTime({totalTime: timerState.totalTime + seconds}))
-    }, [dispatch])
-
+    }
 
     const progressbarText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
     const progressbarPercentage = timerState.timeLeft === 0 ? 0 : Math.round(timerState.timeLeft / timerState.totalTime * 100)
