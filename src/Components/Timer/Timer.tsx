@@ -1,9 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import 'react-circular-progressbar/dist/styles.css';
 import {SuperButton} from "./SuperButton/SuperButton";
 import s from './Timer.module.css'
 import {buildStyles, CircularProgressbar} from "react-circular-progressbar";
-import SuperRange from "../SuperRange";
+import {useSelector} from "react-redux";
+import {RootStateType, useAppDispatch} from "redux/store/store";
+import {InitialStateType, timerActions} from "redux/store/timerReducer";
 
 type TimerControlButtonsConfigType = {
     [key: number]: TimerControlButtonConfigType[]
@@ -16,77 +18,90 @@ type TimerControlButtonConfigType = {
 // Start adding RTK
 export const Timer = () => {
 
-    const [startTime, setStartTime] = useState<number>(0)
-    const [totalTime, setTotalTime] = useState<number>(0)
-    const [timeLeft, setTimeLeft] = useState(startTime * 60)
-    const [timerStatus, setTimerStatus] = useState(0)
-    const [intervalId, setIntervalId] = useState(setInterval(() => {
-    }, 1000))
+    const dispatch = useAppDispatch()
+    const timerState = useSelector<RootStateType, InitialStateType>(state => state.timer)
+    let minutes = Math.floor(timerState.timeLeft / 60)
+    let seconds = Math.floor((timerState.timeLeft - minutes * 60))
 
-    let minutes = Math.floor(timeLeft / 60)
-    let seconds = Math.floor((timeLeft - minutes * 60))
+
+    // const [startTime, setStartTime] = useState<number>(0)
+    // const [totalTime, setTotalTime] = useState<number>(0)
+    // const [timeLeft, setTimeLeft] = useState(startTime * 60)
+    // const [timerStatus, setTimerStatus] = useState(0)
+
 
     useEffect(() => {
-        if (intervalId) {
-            setIntervalId(setInterval(() => {
-                timerStatus === 1 &&
-                setTimeLeft((timeLeft) => timeLeft >= 1 ? timeLeft - 1 : 0)
-            }, 1000))
+        let intervalId: NodeJS.Timeout | null = null;
+
+        if (timerState.timerStatus === 1) {
+            intervalId = setInterval(() => {
+                dispatch(timerActions.setTimeLeft({ timeLeft: timerState.timeLeft >= 1 ? timerState.timeLeft - 1 : 0 }));
+            }, 1000);
         }
 
         return () => {
             if (intervalId) {
-                clearInterval(intervalId)
+                clearInterval(intervalId);
             }
-        }
-    }, [timerStatus])
+        };
+    }, [timerState.timeLeft, timerState.timerStatus]);
+
+
+
+    // const [intervalId, setIntervalId] = useState(setInterval(() => {
+    // }, 1000))
+    //
+    //
+    // useEffect(() => {
+    //     if (intervalId) {
+    //         setIntervalId(setInterval(() => {
+    //             timerState.timerStatus === 1 &&
+    //             dispatch(timerActions.setTimeLeft({timeLeft: timerState.timeLeft >= 1 ? timerState.timeLeft - 1 : 0}))
+    //         }, 1000))
+    //     }
+    //
+    //     return () => {
+    //         if (intervalId) {
+    //             clearInterval(intervalId)
+    //         }
+    //     }
+    // }, [timerState.timerStatus])
 
     useEffect(() => {
-        totalTime > 3600 && setTotalTime(3600)
-    }, [totalTime])
+        timerState.totalTime > 3600 && dispatch(timerActions.setTotalTime({totalTime: 3600}))
+    }, [timerState.totalTime])
 
     useEffect(() => {
-        timeLeft >= 3600 && setTimeLeft(3600)
+        timerState.timeLeft >= 3600 && dispatch(timerActions.setTimeLeft({timeLeft: 3600}))
 
-        if (timeLeft <= 0) {
-            setTimeLeft(0)
-            setTotalTime(0)
-            setTimerStatus(0)
+        if (timerState.timeLeft <= 0) {
+           dispatch(timerActions.setTimeLeft({timeLeft: 0}))
+            dispatch(timerActions.setTotalTime({totalTime: 0}))
+            dispatch(timerActions.setTimerStatus({timerStatus: 0}))
         }
 
-    }, [timeLeft])
+    }, [timerState.timeLeft])
 
 
-    const start = () => {
-        clearInterval(intervalId)
-        setTimerStatus(1)
-        setTotalTime(timeLeft)
-    }
-
-    const stop = () => {
-        clearInterval(intervalId)
-        setTimerStatus(2)
-    }
-
-    const resume = () => setTimerStatus(1)
-
+    const start = () => dispatch(timerActions.startTimer())
+    const stop = () => dispatch(timerActions.setTimerStatus({timerStatus: 2}))
+    const resume = () => dispatch(timerActions.setTimerStatus({timerStatus: 1}))
     const reset = () => {
-        clearInterval(intervalId)
-        setTimerStatus(0)
-        setTimeLeft(0)
+        dispatch(timerActions.setTimerStatus({timerStatus: 0}))
+        dispatch(timerActions.setTimeLeft({timeLeft: 0}))
     }
 
 
     const updateTimer = (seconds: number) => {
-        setTimeLeft(timeLeft + seconds)
-        setTotalTime(totalTime + seconds)
+        dispatch(timerActions.setTimeLeft({timeLeft: timerState.timeLeft + seconds}))
+        dispatch(timerActions.setTotalTime({totalTime: timerState.totalTime + seconds}))
     }
-    const addOneMinute = () => updateTimer(60)
-    const addFiveMinutes = () => updateTimer(300)
-    const addFifteenMinutes = () => updateTimer(1500)
-    const removeFifteenMinutes = () => updateTimer(-1500)
-    const removeFiveMinutes = () => updateTimer(-300)
-    const removeOneMinute = () => updateTimer(-60)
+    // const addOneMinute = () => updateTimer(60)
+    // const addFiveMinutes = () => updateTimer(300)
+    // const addFifteenMinutes = () => updateTimer(1500)
+    // const removeFifteenMinutes = () => updateTimer(-1500)
+    // const removeFiveMinutes = () => updateTimer(-300)
+    // const removeOneMinute = () => updateTimer(-60)
 
 
     const timerControlButtonsConfig: TimerControlButtonsConfigType = {
@@ -104,22 +119,22 @@ export const Timer = () => {
         ]
     }
     const timerValueButtonsConfig = [
-        {label: "+1", callback: addOneMinute},
-        {label: "+5", callback: addFiveMinutes},
-        {label: "+15", callback: addFifteenMinutes},
-        {label: "-15", callback: removeFifteenMinutes},
-        {label: "-5", callback: removeFiveMinutes},
-        {label: "-1", callback: removeOneMinute}
+        {label: "+1", callback: () => updateTimer(60)},
+        {label: "+5", callback: () => updateTimer(300)},
+        {label: "+15", callback: () => updateTimer(1500)},
+        {label: "-15", callback: () =>updateTimer(-1500)},
+        {label: "-5", callback: () => updateTimer(-300)},
+        {label: "-1", callback: () => updateTimer(-60)}
     ]
 
-    const controlButtons = timerControlButtonsConfig[timerStatus].map(({text, callback}, index) => <SuperButton
-        callback={callback} key={index} disabled={timeLeft <= 0} xType={"control"}>{text}</SuperButton>)
+    const controlButtons = timerControlButtonsConfig[timerState.timerStatus].map(({text, callback}, index) => <SuperButton
+        callback={callback} key={index} disabled={timerState.timeLeft <= 0} xType={"control"}>{text}</SuperButton>)
     const changeValueButtons = timerValueButtonsConfig.map(({label, callback}, index) => <SuperButton
         callback={callback} key={index}>{label}</SuperButton>)
 
 
     const progressbarText = `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`
-    const progressbarPercentage = timeLeft === 0 ? 0 : Math.round(timeLeft / totalTime * 100)
+    const progressbarPercentage = timerState.timeLeft === 0 ? 0 : Math.round(timerState.timeLeft / timerState.totalTime * 100)
 
 
     return (
@@ -133,8 +148,6 @@ export const Timer = () => {
                     <div className={s.changeValueButtons}>
                         {changeValueButtons}
                     </div>
-                </div>
-                <div className={s.range}>
                 </div>
             </div>
         </div>
