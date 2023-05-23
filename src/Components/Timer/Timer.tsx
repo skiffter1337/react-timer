@@ -13,6 +13,7 @@ type TimerControlButtonConfigType = {
     callback: () => void
 }
 
+// Start adding RTK
 export const Timer = () => {
 
     const [startTime, setStartTime] = useState<number>(0)
